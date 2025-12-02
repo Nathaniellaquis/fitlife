@@ -6,17 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrainerWithUser, TrainerConnectionWithDetails } from '@/lib/types';
 import { toast } from 'sonner';
-
-const CURRENT_USER_ID = 1; // Jack is an athlete
+import { useAuth } from '@/lib/auth-context';
 
 export default function TrainersPage() {
+  const { user } = useAuth();
   const [trainers, setTrainers] = useState<TrainerWithUser[]>([]);
   const [connections, setConnections] = useState<TrainerConnectionWithDetails[]>([]);
 
   useEffect(() => {
-    fetchTrainers();
-    fetchConnections();
-  }, []);
+    if (user) {
+      fetchTrainers();
+      fetchConnections();
+    }
+  }, [user]);
 
   async function fetchTrainers() {
     const res = await fetch('/api/trainers');
@@ -25,17 +27,19 @@ export default function TrainersPage() {
   }
 
   async function fetchConnections() {
-    const res = await fetch(`/api/trainer-connections?athlete_id=${CURRENT_USER_ID}`);
+    if (!user) return;
+    const res = await fetch(`/api/trainer-connections?athlete_id=${user.id}`);
     const data = await res.json();
     setConnections(data);
   }
 
   async function handleConnect(trainerId: number) {
+    if (!user) return;
     const res = await fetch('/api/trainer-connections', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        A_id: CURRENT_USER_ID,
+        A_id: user.id,
         T_id: trainerId,
         notes: '',
       }),
@@ -51,8 +55,9 @@ export default function TrainersPage() {
   }
 
   async function handleDisconnect(trainerId: number) {
+    if (!user) return;
     const res = await fetch(
-      `/api/trainer-connections?A_id=${CURRENT_USER_ID}&T_id=${trainerId}`,
+      `/api/trainer-connections?A_id=${user.id}&T_id=${trainerId}`,
       { method: 'DELETE' }
     );
 

@@ -8,8 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const CURRENT_USER_ID = 1;
+import { useAuth } from '@/lib/auth-context';
 
 interface Workout {
   WS_id: number;
@@ -72,13 +71,15 @@ function formatDate(dateString: string) {
 }
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchDashboard() {
+      if (!user) return;
       try {
-        const res = await fetch(`/api/dashboard?user_id=${CURRENT_USER_ID}`);
+        const res = await fetch(`/api/dashboard?user_id=${user.id}`);
         const dashboardData = await res.json();
         setData(dashboardData);
       } catch (error) {
@@ -88,7 +89,7 @@ export default function Dashboard() {
       }
     }
     fetchDashboard();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return (

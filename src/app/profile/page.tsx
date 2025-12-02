@@ -9,8 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-
-const CURRENT_USER_ID = 1;
+import { useAuth } from '@/lib/auth-context';
 
 interface User {
   U_id: number;
@@ -47,6 +46,7 @@ const achievementIcons: Record<string, string> = {
 };
 
 export default function ProfilePage() {
+  const { user: authUser } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,14 +60,15 @@ export default function ProfilePage() {
   const [fitnessLevel, setFitnessLevel] = useState('');
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (authUser) fetchData();
+  }, [authUser]);
 
   async function fetchData() {
+    if (!authUser) return;
     try {
       const [userRes, achievementsRes] = await Promise.all([
-        fetch(`/api/users/${CURRENT_USER_ID}`),
-        fetch(`/api/user-achievements?user_id=${CURRENT_USER_ID}`)
+        fetch(`/api/users/${authUser.id}`),
+        fetch(`/api/user-achievements?user_id=${authUser.id}`)
       ]);
       const userData = await userRes.json();
       setUser(userData);
@@ -86,14 +87,15 @@ export default function ProfilePage() {
   }
 
   async function handleSave() {
-    await fetch(`/api/users/${CURRENT_USER_ID}`, {
+    if (!authUser) return;
+    await fetch(`/api/users/${authUser.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fname, lname, phone, dob, gender }),
     });
 
     if (user?.athlete) {
-      await fetch(`/api/athletes/${CURRENT_USER_ID}`, {
+      await fetch(`/api/athletes/${authUser.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fitness_level: fitnessLevel }),

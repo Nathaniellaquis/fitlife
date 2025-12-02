@@ -11,8 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-
-const CURRENT_USER_ID = 1;
+import { useAuth } from '@/lib/auth-context';
 
 interface UserGoal {
   U_id: number;
@@ -31,6 +30,7 @@ interface Goal {
 }
 
 export default function GoalsPage() {
+  const { user } = useAuth();
   const [userGoals, setUserGoals] = useState<UserGoal[]>([]);
   const [goalCatalog, setGoalCatalog] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,13 +39,14 @@ export default function GoalsPage() {
   const [targetValue, setTargetValue] = useState('');
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user) fetchData();
+  }, [user]);
 
   async function fetchData() {
+    if (!user) return;
     try {
       const [goalsRes, catalogRes] = await Promise.all([
-        fetch(`/api/user-goals?user_id=${CURRENT_USER_ID}`),
+        fetch(`/api/user-goals?user_id=${user.id}`),
         fetch('/api/goals')
       ]);
       setUserGoals(await goalsRes.json());
@@ -59,11 +60,12 @@ export default function GoalsPage() {
 
   async function handleAddGoal(e: React.FormEvent) {
     e.preventDefault();
+    if (!user) return;
     const res = await fetch('/api/user-goals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        U_id: CURRENT_USER_ID,
+        U_id: user.id,
         G_id: parseInt(selectedGoal),
         target_value: parseFloat(targetValue),
         status: 'active',

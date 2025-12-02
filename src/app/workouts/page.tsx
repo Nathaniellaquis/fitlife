@@ -11,8 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-
-const CURRENT_USER_ID = 1;
+import { useAuth } from '@/lib/auth-context';
 
 interface Workout {
   WS_id: number;
@@ -41,6 +40,7 @@ function getWorkoutIcon(notes: string) {
 }
 
 export default function WorkoutsPage() {
+  const { user } = useAuth();
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -48,12 +48,13 @@ export default function WorkoutsPage() {
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
-    fetchWorkouts();
-  }, []);
+    if (user) fetchWorkouts();
+  }, [user]);
 
   async function fetchWorkouts() {
+    if (!user) return;
     try {
-      const res = await fetch(`/api/workouts?user_id=${CURRENT_USER_ID}`);
+      const res = await fetch(`/api/workouts?user_id=${user.id}`);
       const data = await res.json();
       setWorkouts(data);
     } catch (error) {
@@ -65,12 +66,13 @@ export default function WorkoutsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!user) return;
 
     const res = await fetch('/api/workouts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        U_id: CURRENT_USER_ID,
+        U_id: user.id,
         session_date: sessionDate,
         notes,
       }),

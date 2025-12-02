@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
+import { Button } from '@/components/ui/button';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: '📊' },
@@ -14,6 +16,7 @@ const navItems = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
@@ -43,6 +46,16 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
+            {user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={logout}
+                className="ml-2 text-muted-foreground hover:text-foreground"
+              >
+                Logout
+              </Button>
+            )}
           </div>
         </div>
       </div>
