@@ -112,7 +112,7 @@ export async function GET(request: Request) {
     // Get this week's workout count
     const weekWorkoutsResult = await query<{ count: number }>(
       `SELECT COUNT(*) as count FROM workout_session
-       WHERE U_id = ? AND session_date >= date('now', '-7 days')`,
+       WHERE U_id = ? AND session_date >= (CURRENT_DATE - INTERVAL '7 days')::text`,
       [userId]
     );
     const weekWorkouts = weekWorkoutsResult[0]?.count || 0;
