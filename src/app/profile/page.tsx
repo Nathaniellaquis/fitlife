@@ -6,18 +6,52 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { AchievementBadge } from '@/components/achievement-badge';
-import { UserWithDetails, UserAchievementWithDetails } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 
 const CURRENT_USER_ID = 1;
 
+interface User {
+  U_id: number;
+  email: string;
+  fname: string;
+  lname: string;
+  phone: string;
+  dob: string;
+  gender: string;
+  athlete?: { A_id: number; fitness_level: string };
+  trainer?: { T_id: number; specialty: string; location: string; bio: string };
+}
+
+interface Achievement {
+  U_id: number;
+  Ach_id: number;
+  code: string;
+  title: string;
+  description: string;
+  created_at: string;
+}
+
+const achievementIcons: Record<string, string> = {
+  FIRST_WORKOUT: '🎉',
+  WEEK_STREAK: '🔥',
+  MONTH_STREAK: '💎',
+  EARLY_BIRD: '🌅',
+  NIGHT_OWL: '🦉',
+  GOAL_CRUSHER: '🏆',
+  FIVE_GOALS: '⭐',
+  SOCIAL_BUTTERFLY: '🦋',
+  CALORIE_BURNER: '🔥',
+  CONSISTENT: '📅',
+};
+
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserWithDetails | null>(null);
-  const [achievements, setAchievements] = useState<UserAchievementWithDetails[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Form state
   const [fname, setFname] = useState('');
   const [lname, setLname] = useState('');
   const [phone, setPhone] = useState('');
@@ -26,37 +60,38 @@ export default function ProfilePage() {
   const [fitnessLevel, setFitnessLevel] = useState('');
 
   useEffect(() => {
-    fetchUser();
-    fetchAchievements();
+    fetchData();
   }, []);
 
-  async function fetchUser() {
-    const res = await fetch(`/api/users/${CURRENT_USER_ID}`);
-    const data = await res.json();
-    setUser(data);
-    setFname(data.fname || '');
-    setLname(data.lname || '');
-    setPhone(data.phone || '');
-    setDob(data.dob || '');
-    setGender(data.gender || '');
-    setFitnessLevel(data.athlete?.fitness_level || '');
-  }
-
-  async function fetchAchievements() {
-    const res = await fetch(`/api/user-achievements?user_id=${CURRENT_USER_ID}`);
-    const data = await res.json();
-    setAchievements(data);
+  async function fetchData() {
+    try {
+      const [userRes, achievementsRes] = await Promise.all([
+        fetch(`/api/users/${CURRENT_USER_ID}`),
+        fetch(`/api/user-achievements?user_id=${CURRENT_USER_ID}`)
+      ]);
+      const userData = await userRes.json();
+      setUser(userData);
+      setFname(userData.fname || '');
+      setLname(userData.lname || '');
+      setPhone(userData.phone || '');
+      setDob(userData.dob || '');
+      setGender(userData.gender || '');
+      setFitnessLevel(userData.athlete?.fitness_level || '');
+      setAchievements(await achievementsRes.json());
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSave() {
-    // Update user info
     await fetch(`/api/users/${CURRENT_USER_ID}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fname, lname, phone, dob, gender }),
     });
 
-    // Update athlete info if applicable
     if (user?.athlete) {
       await fetch(`/api/athletes/${CURRENT_USER_ID}`, {
         method: 'PATCH',
@@ -67,161 +102,223 @@ export default function ProfilePage() {
 
     toast.success('Profile updated!');
     setIsEditing(false);
-    fetchUser();
+    fetchData();
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <div className="grid gap-6 md:grid-cols-2">
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
-    return <div>Loading...</div>;
+    return <div className="text-center py-12">Unable to load profile</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Profile</h1>
-          <p className="text-muted-foreground">Manage your account</p>
-        </div>
-        <Button
-          variant={isEditing ? 'outline' : 'default'}
-          onClick={() => {
-            if (isEditing) {
-              handleSave();
-            } else {
-              setIsEditing(true);
-            }
-          }}
-        >
-          {isEditing ? 'Save Changes' : 'Edit Profile'}
-        </Button>
-      </div>
+    <div className="space-y-8">
+      {/* Profile Header */}
+      <Card className="border-0 shadow-lg overflow-hidden">
+        <div className="h-24 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500" />
+        <CardContent className="relative pt-0 pb-6">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div className="flex items-end gap-4 -mt-12">
+              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-4xl text-white font-bold shadow-xl border-4 border-background">
+                {fname?.[0] || 'U'}
+              </div>
+              <div className="pb-1">
+                <h1 className="text-2xl font-bold">{fname} {lname}</h1>
+                <p className="text-muted-foreground">{user.email}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {user.athlete && (
+                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 border-0 px-3 py-1">
+                  {user.athlete.fitness_level}
+                </Badge>
+              )}
+              <Button
+                variant={isEditing ? 'default' : 'outline'}
+                onClick={() => {
+                  if (isEditing) {
+                    handleSave();
+                  } else {
+                    setIsEditing(true);
+                  }
+                }}
+                className={isEditing ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600' : ''}
+              >
+                {isEditing ? 'Save Changes' : 'Edit Profile'}
+              </Button>
+              {isEditing && (
+                <Button variant="ghost" onClick={() => setIsEditing(false)}>
+                  Cancel
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Personal Info */}
-        <Card>
+        <Card className="border-0 shadow-lg">
           <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-xl">👤</span>
+              Personal Information
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>First Name</Label>
+                <Label className="text-muted-foreground text-xs uppercase tracking-wide">First Name</Label>
                 {isEditing ? (
-                  <Input value={fname} onChange={(e) => setFname(e.target.value)} />
+                  <Input value={fname} onChange={(e) => setFname(e.target.value)} className="h-10" />
                 ) : (
-                  <p className="text-sm">{user.fname || '-'}</p>
+                  <p className="font-medium">{user.fname || '-'}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Last Name</Label>
+                <Label className="text-muted-foreground text-xs uppercase tracking-wide">Last Name</Label>
                 {isEditing ? (
-                  <Input value={lname} onChange={(e) => setLname(e.target.value)} />
+                  <Input value={lname} onChange={(e) => setLname(e.target.value)} className="h-10" />
                 ) : (
-                  <p className="text-sm">{user.lname || '-'}</p>
+                  <p className="font-medium">{user.lname || '-'}</p>
                 )}
               </div>
             </div>
+            <Separator />
             <div className="space-y-2">
-              <Label>Email</Label>
-              <p className="text-sm">{user.email}</p>
+              <Label className="text-muted-foreground text-xs uppercase tracking-wide">Email</Label>
+              <p className="font-medium">{user.email}</p>
             </div>
             <div className="space-y-2">
-              <Label>Phone</Label>
+              <Label className="text-muted-foreground text-xs uppercase tracking-wide">Phone</Label>
               {isEditing ? (
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="h-10" />
               ) : (
-                <p className="text-sm">{user.phone || '-'}</p>
+                <p className="font-medium">{user.phone || '-'}</p>
               )}
             </div>
+            <Separator />
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Date of Birth</Label>
+                <Label className="text-muted-foreground text-xs uppercase tracking-wide">Date of Birth</Label>
                 {isEditing ? (
-                  <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+                  <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="h-10" />
                 ) : (
-                  <p className="text-sm">{user.dob || '-'}</p>
+                  <p className="font-medium">{user.dob || '-'}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Gender</Label>
+                <Label className="text-muted-foreground text-xs uppercase tracking-wide">Gender</Label>
                 {isEditing ? (
-                  <Input value={gender} onChange={(e) => setGender(e.target.value)} />
+                  <Input value={gender} onChange={(e) => setGender(e.target.value)} className="h-10" />
                 ) : (
-                  <p className="text-sm">{user.gender || '-'}</p>
+                  <p className="font-medium">{user.gender || '-'}</p>
                 )}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Athlete Info */}
-        {user.athlete && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Athlete Profile</CardTitle>
-                <Badge>Athlete</Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Fitness Level</Label>
-                {isEditing ? (
-                  <Input
-                    value={fitnessLevel}
-                    onChange={(e) => setFitnessLevel(e.target.value)}
-                    placeholder="e.g., Beginner, Intermediate, Advanced"
-                  />
-                ) : (
-                  <p className="text-sm">{user.athlete.fitness_level || '-'}</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Athlete/Trainer Info */}
+        <div className="space-y-6">
+          {user.athlete && (
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="text-xl">💪</span>
+                  Athlete Profile
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs uppercase tracking-wide">Fitness Level</Label>
+                  {isEditing ? (
+                    <Input
+                      value={fitnessLevel}
+                      onChange={(e) => setFitnessLevel(e.target.value)}
+                      placeholder="e.g., Beginner, Intermediate, Advanced"
+                      className="h-10"
+                    />
+                  ) : (
+                    <p className="font-medium">{user.athlete.fitness_level || '-'}</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Trainer Info */}
-        {user.trainer && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Trainer Profile</CardTitle>
-                <Badge variant="secondary">Trainer</Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Specialty</Label>
-                <p className="text-sm">{user.trainer.specialty || '-'}</p>
-              </div>
-              <div className="space-y-2">
-                <Label>Location</Label>
-                <p className="text-sm">{user.trainer.location || '-'}</p>
-              </div>
-              <div className="space-y-2">
-                <Label>Bio</Label>
-                <p className="text-sm">{user.trainer.bio || '-'}</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+          {user.trainer && (
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="text-xl">🏋️</span>
+                  Trainer Profile
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs uppercase tracking-wide">Specialty</Label>
+                  <p className="font-medium">{user.trainer.specialty || '-'}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs uppercase tracking-wide">Location</Label>
+                  <p className="font-medium">{user.trainer.location || '-'}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs uppercase tracking-wide">Bio</Label>
+                  <p className="font-medium text-sm">{user.trainer.bio || '-'}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
       {/* Achievements */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Achievements ({achievements.length})</h2>
-        {achievements.length > 0 ? (
-          <div className="space-y-3">
-            {achievements.map((achievement) => (
-              <AchievementBadge
-                key={`${achievement.U_id}-${achievement.Ach_id}`}
-                achievement={achievement}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="text-muted-foreground">No achievements yet. Keep working out!</p>
-        )}
-      </div>
+      <Card className="border-0 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span className="text-xl">🏆</span>
+            Achievements
+            <Badge variant="secondary" className="ml-2">{achievements.length}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {achievements.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {achievements.map((achievement) => (
+                <div
+                  key={`${achievement.U_id}-${achievement.Ach_id}`}
+                  className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20"
+                >
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl shadow-lg">
+                    {achievementIcons[achievement.code] || '🏅'}
+                  </div>
+                  <div>
+                    <p className="font-bold">{achievement.title}</p>
+                    <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-2">🏆</div>
+              <p className="text-muted-foreground">Complete workouts to earn achievements!</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
