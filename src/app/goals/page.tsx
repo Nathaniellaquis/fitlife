@@ -49,10 +49,14 @@ export default function GoalsPage() {
         fetch(`/api/user-goals?user_id=${user.id}`),
         fetch('/api/goals')
       ]);
-      setUserGoals(await goalsRes.json());
-      setGoalCatalog(await catalogRes.json());
+      const goalsData = await goalsRes.json();
+      const catalogData = await catalogRes.json();
+      setUserGoals(Array.isArray(goalsData) ? goalsData : []);
+      setGoalCatalog(Array.isArray(catalogData) ? catalogData : []);
     } catch (error) {
       console.error('Failed to fetch goals:', error);
+      setUserGoals([]);
+      setGoalCatalog([]);
     } finally {
       setLoading(false);
     }
