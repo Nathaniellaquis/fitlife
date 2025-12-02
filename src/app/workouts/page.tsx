@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 
 interface Workout {
-  WS_id: number;
+  ws_id: number;
   session_date: string;
   notes: string;
   created_at: string;
@@ -56,9 +56,10 @@ export default function WorkoutsPage() {
     try {
       const res = await fetch(`/api/workouts?user_id=${user.id}`);
       const data = await res.json();
-      setWorkouts(data);
+      setWorkouts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch workouts:', error);
+      setWorkouts([]);
     } finally {
       setLoading(false);
     }
@@ -159,7 +160,7 @@ export default function WorkoutsPage() {
       {workouts.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {workouts.map((workout, index) => (
-            <Link key={workout.WS_id} href={`/workouts/${workout.WS_id}`}>
+            <Link key={workout.ws_id} href={`/workouts/${workout.ws_id}`}>
               <Card className="group border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden h-full">
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <CardContent className="p-6 relative">

@@ -12,20 +12,20 @@ import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 
 interface User {
-  U_id: number;
+  u_id: number;
   email: string;
   fname: string;
   lname: string;
   phone: string;
   dob: string;
   gender: string;
-  athlete?: { A_id: number; fitness_level: string };
-  trainer?: { T_id: number; specialty: string; location: string; bio: string };
+  athlete?: { a_id: number; fitness_level: string };
+  trainer?: { t_id: number; specialty: string; location: string; bio: string };
 }
 
 interface Achievement {
-  U_id: number;
-  Ach_id: number;
+  u_id: number;
+  ach_id: number;
   code: string;
   title: string;
   description: string;
@@ -71,6 +71,7 @@ export default function ProfilePage() {
         fetch(`/api/user-achievements?user_id=${authUser.id}`)
       ]);
       const userData = await userRes.json();
+      const achievementsData = await achievementsRes.json();
       setUser(userData);
       setFname(userData.fname || '');
       setLname(userData.lname || '');
@@ -78,7 +79,7 @@ export default function ProfilePage() {
       setDob(userData.dob || '');
       setGender(userData.gender || '');
       setFitnessLevel(userData.athlete?.fitness_level || '');
-      setAchievements(await achievementsRes.json());
+      setAchievements(Array.isArray(achievementsData) ? achievementsData : []);
     } catch (error) {
       console.error('Failed to fetch profile:', error);
     } finally {
@@ -300,7 +301,7 @@ export default function ProfilePage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {achievements.map((achievement) => (
                 <div
-                  key={`${achievement.U_id}-${achievement.Ach_id}`}
+                  key={`${achievement.u_id}-${achievement.ach_id}`}
                   className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20"
                 >
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl shadow-lg">

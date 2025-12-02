@@ -1,7 +1,7 @@
-// Database types matching our schema
+// Database types matching our schema (lowercase for PostgreSQL)
 
 export interface User {
-  U_id: number;
+  u_id: number;
   email: string;
   password: string;
   fname: string | null;
@@ -14,27 +14,27 @@ export interface User {
 }
 
 export interface Athlete {
-  A_id: number;
+  a_id: number;
   fitness_level: string | null;
 }
 
 export interface Trainer {
-  T_id: number;
+  t_id: number;
   specialty: string | null;
   location: string | null;
   bio: string | null;
 }
 
 export interface TrainerConnection {
-  A_id: number;
-  T_id: number;
+  a_id: number;
+  t_id: number;
   notes: string | null;
   created_at: string;
 }
 
 export interface PasswordReset {
-  PR_id: number;
-  U_id: number;
+  pr_id: number;
+  u_id: number;
   token: string;
   expires_at: string;
   used_at: string | null;
@@ -42,22 +42,22 @@ export interface PasswordReset {
 }
 
 export interface WorkoutSession {
-  WS_id: number;
-  U_id: number;
+  ws_id: number;
+  u_id: number;
   session_date: string;
   notes: string | null;
   created_at: string;
 }
 
 export interface ExerciseType {
-  ET_id: number;
+  et_id: number;
   name: string;
   target_muscle_group: string | null;
 }
 
 export interface WorkoutSessionExercise {
-  WS_id: number;
-  ET_id: number;
+  ws_id: number;
+  et_id: number;
   exercise_order: number | null;
   sets: number | null;
   reps: number | null;
@@ -69,15 +69,15 @@ export interface WorkoutSessionExercise {
 }
 
 export interface Goal {
-  G_id: number;
+  g_id: number;
   title: string;
   description: string | null;
   date_earned: string | null;
 }
 
 export interface UserGoal {
-  U_id: number;
-  G_id: number;
+  u_id: number;
+  g_id: number;
   target_value: number | null;
   current_value: number | null;
   status: string;
@@ -86,15 +86,15 @@ export interface UserGoal {
 }
 
 export interface Achievement {
-  Ach_id: number;
+  ach_id: number;
   code: string;
   title: string;
   description: string | null;
 }
 
 export interface UserAchievement {
-  U_id: number;
-  Ach_id: number;
+  u_id: number;
+  ach_id: number;
   created_at: string;
   updated_at: string;
 }

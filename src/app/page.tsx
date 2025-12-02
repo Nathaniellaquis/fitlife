@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth-context';
 
 interface Workout {
-  WS_id: number;
+  ws_id: number;
   session_date: string;
   notes: string;
   exercise_count: number;
@@ -19,8 +19,8 @@ interface Workout {
 }
 
 interface Goal {
-  U_id: number;
-  G_id: number;
+  u_id: number;
+  g_id: number;
   title: string;
   description: string;
   target_value: number;
@@ -29,8 +29,8 @@ interface Goal {
 }
 
 interface Achievement {
-  U_id: number;
-  Ach_id: number;
+  u_id: number;
+  ach_id: number;
   code: string;
   title: string;
   description: string;
@@ -192,7 +192,7 @@ export default function Dashboard() {
           <CardContent className="space-y-3">
             {recentWorkouts.length > 0 ? (
               recentWorkouts.map((workout) => (
-                <Link key={workout.WS_id} href={`/workouts/${workout.WS_id}`}>
+                <Link key={workout.ws_id} href={`/workouts/${workout.ws_id}`}>
                   <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer group">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg">
@@ -239,7 +239,7 @@ export default function Dashboard() {
               activeGoals.map((goal) => {
                 const progress = Math.min((goal.current_value / goal.target_value) * 100, 100);
                 return (
-                  <div key={`${goal.U_id}-${goal.G_id}`} className="space-y-2">
+                  <div key={`${goal.u_id}-${goal.g_id}`} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-semibold">{goal.title}</p>
@@ -281,7 +281,7 @@ export default function Dashboard() {
             <div className="grid gap-4 md:grid-cols-3">
               {recentAchievements.map((achievement) => (
                 <div
-                  key={`${achievement.U_id}-${achievement.Ach_id}`}
+                  key={`${achievement.u_id}-${achievement.ach_id}`}
                   className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20"
                 >
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl shadow-lg">

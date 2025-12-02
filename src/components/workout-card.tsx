@@ -1,7 +1,12 @@
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { WorkoutSession } from '@/lib/types';
+
+interface WorkoutSession {
+  ws_id: number;
+  session_date: string;
+  notes: string | null;
+}
 
 interface WorkoutCardProps {
   workout: WorkoutSession;
@@ -10,7 +15,7 @@ interface WorkoutCardProps {
 
 export function WorkoutCard({ workout, exerciseCount }: WorkoutCardProps) {
   return (
-    <Link href={`/workouts/${workout.WS_id}`}>
+    <Link href={`/workouts/${workout.ws_id}`}>
       <Card className="hover:bg-accent transition-colors cursor-pointer">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">

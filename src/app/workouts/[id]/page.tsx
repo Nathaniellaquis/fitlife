@@ -9,8 +9,34 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { WorkoutWithExercises, ExerciseType } from '@/lib/types';
 import { toast } from 'sonner';
+
+interface ExerciseType {
+  et_id: number;
+  name: string;
+  target_muscle_group: string | null;
+}
+
+interface WorkoutExercise {
+  ws_id: number;
+  et_id: number;
+  name: string;
+  target_muscle_group: string;
+  sets: number | null;
+  reps: number | null;
+  weight: number | null;
+  duration_min: number | null;
+  calories_burned: number | null;
+}
+
+interface WorkoutWithExercises {
+  ws_id: number;
+  u_id: number;
+  session_date: string;
+  notes: string | null;
+  created_at: string;
+  exercises: WorkoutExercise[];
+}
 
 export default function WorkoutDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -43,7 +69,7 @@ export default function WorkoutDetailPage({ params }: { params: Promise<{ id: st
   async function fetchExerciseTypes() {
     const res = await fetch('/api/exercise-types');
     const data = await res.json();
-    setExerciseTypes(data);
+    setExerciseTypes(Array.isArray(data) ? data : []);
   }
 
   async function handleAddExercise(e: React.FormEvent) {
@@ -128,7 +154,7 @@ export default function WorkoutDetailPage({ params }: { params: Promise<{ id: st
                     </SelectTrigger>
                     <SelectContent>
                       {exerciseTypes.map((et) => (
-                        <SelectItem key={et.ET_id} value={et.ET_id.toString()}>
+                        <SelectItem key={et.et_id} value={et.et_id.toString()}>
                           {et.name} ({et.target_muscle_group})
                         </SelectItem>
                       ))}
@@ -196,7 +222,7 @@ export default function WorkoutDetailPage({ params }: { params: Promise<{ id: st
         {workout.exercises.length > 0 ? (
           <div className="space-y-3">
             {workout.exercises.map((exercise, index) => (
-              <Card key={`${exercise.WS_id}-${exercise.ET_id}`}>
+              <Card key={`${exercise.ws_id}-${exercise.et_id}`}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">

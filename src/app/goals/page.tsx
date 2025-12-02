@@ -14,8 +14,8 @@ import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 
 interface UserGoal {
-  U_id: number;
-  G_id: number;
+  u_id: number;
+  g_id: number;
   target_value: number;
   current_value: number;
   status: string;
@@ -24,7 +24,7 @@ interface UserGoal {
 }
 
 interface Goal {
-  G_id: number;
+  g_id: number;
   title: string;
   description: string;
 }
@@ -92,8 +92,8 @@ export default function GoalsPage() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        U_id: goal.U_id,
-        G_id: goal.G_id,
+        U_id: goal.u_id,
+        G_id: goal.g_id,
         current_value: newValue,
         status: newValue >= goal.target_value ? 'completed' : 'active',
       }),
@@ -106,7 +106,7 @@ export default function GoalsPage() {
   }
 
   const availableGoals = goalCatalog.filter(
-    (g) => !userGoals.some((ug) => ug.G_id === g.G_id)
+    (g) => !userGoals.some((ug) => ug.g_id === g.g_id)
   );
 
   const activeGoals = userGoals.filter((g) => g.status === 'active');
@@ -157,7 +157,7 @@ export default function GoalsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {availableGoals.map((g) => (
-                      <SelectItem key={g.G_id} value={g.G_id.toString()}>
+                      <SelectItem key={g.g_id} value={g.g_id.toString()}>
                         {g.title}
                       </SelectItem>
                     ))}
@@ -196,7 +196,7 @@ export default function GoalsPage() {
               const progress = Math.min((goal.current_value / goal.target_value) * 100, 100);
               const isClose = progress >= 80;
               return (
-                <Card key={`${goal.U_id}-${goal.G_id}`} className="border-0 shadow-lg overflow-hidden">
+                <Card key={`${goal.u_id}-${goal.g_id}`} className="border-0 shadow-lg overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5" />
                   <CardContent className="p-6 relative">
                     {/* Progress Ring */}
@@ -293,7 +293,7 @@ export default function GoalsPage() {
           </h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {completedGoals.map((goal) => (
-              <Card key={`${goal.U_id}-${goal.G_id}`} className="border-0 shadow-lg bg-gradient-to-br from-green-500/10 to-emerald-500/10">
+              <Card key={`${goal.u_id}-${goal.g_id}`} className="border-0 shadow-lg bg-gradient-to-br from-green-500/10 to-emerald-500/10">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white text-2xl shadow-lg">
