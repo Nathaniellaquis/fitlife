@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query, run } from '@/lib/db';
 import { WorkoutSession } from '@/lib/types';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get('user_id');

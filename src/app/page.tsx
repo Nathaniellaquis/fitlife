@@ -1,83 +1,102 @@
-import { query } from '@/lib/db';
+'use client';
+
+import { useState, useEffect } from 'react';
 import { StatsCard } from '@/components/stats-card';
 import { WorkoutCard } from '@/components/workout-card';
 import { GoalProgress } from '@/components/goal-progress';
 import { AchievementBadge } from '@/components/achievement-badge';
 import { WorkoutSession, UserGoalWithDetails, UserAchievementWithDetails } from '@/lib/types';
 
-// Hardcoded user ID for demo (Jack)
 const CURRENT_USER_ID = 1;
 
+interface DashboardData {
+  stats: {
+    workoutCount: number;
+    goalCount: number;
+    achievementCount: number;
+    totalCalories: number;
+  };
+  recentWorkouts: WorkoutSession[];
+  activeGoals: UserGoalWithDetails[];
+  recentAchievements: UserAchievementWithDetails[];
+  userName: string;
+}
+
 export default function Dashboard() {
-  // Get stats
-  const workoutCount = query<{ count: number }>(
-    'SELECT COUNT(*) as count FROM workout_session WHERE U_id = ?',
-    [CURRENT_USER_ID]
-  )[0]?.count || 0;
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const goalCount = query<{ count: number }>(
-    'SELECT COUNT(*) as count FROM user_goal WHERE U_id = ? AND status = ?',
-    [CURRENT_USER_ID, 'active']
-  )[0]?.count || 0;
+  useEffect(() => {
+    async function fetchDashboard() {
+      try {
+        const res = await fetch(`/api/dashboard?user_id=${CURRENT_USER_ID}`);
+        const dashboardData = await res.json();
+        setData(dashboardData);
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+        // Set default empty data on error
+        setData({
+          stats: {
+            workoutCount: 0,
+            goalCount: 0,
+            achievementCount: 0,
+            totalCalories: 0,
+          },
+          recentWorkouts: [],
+          activeGoals: [],
+          recentAchievements: [],
+          userName: 'User',
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  const achievementCount = query<{ count: number }>(
-    'SELECT COUNT(*) as count FROM user_achievement WHERE U_id = ?',
-    [CURRENT_USER_ID]
-  )[0]?.count || 0;
+    fetchDashboard();
+  }, []);
 
-  const totalCalories = query<{ total: number }>(
-    `SELECT COALESCE(SUM(wse.calories_burned), 0) as total
-     FROM workout_session_exercise wse
-     JOIN workout_session ws ON wse.WS_id = ws.WS_id
-     WHERE ws.U_id = ?`,
-    [CURRENT_USER_ID]
-  )[0]?.total || 0;
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold">Welcome back!</h1>
+          <p className="text-muted-foreground">Loading your fitness overview...</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-  // Get recent workouts
-  const recentWorkouts = query<WorkoutSession>(
-    'SELECT * FROM workout_session WHERE U_id = ? ORDER BY session_date DESC LIMIT 3',
-    [CURRENT_USER_ID]
-  );
+  if (!data) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold">Welcome!</h1>
+          <p className="text-muted-foreground">Unable to load dashboard data.</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Get active goals
-  const activeGoals = query<UserGoalWithDetails>(
-    `SELECT ug.*, g.title, g.description
-     FROM user_goal ug
-     JOIN goal g ON ug.G_id = g.G_id
-     WHERE ug.U_id = ? AND ug.status = ?
-     ORDER BY ug.created_at DESC LIMIT 3`,
-    [CURRENT_USER_ID, 'active']
-  );
-
-  // Get recent achievements
-  const recentAchievements = query<UserAchievementWithDetails>(
-    `SELECT ua.*, a.code, a.title, a.description
-     FROM user_achievement ua
-     JOIN achievement a ON ua.Ach_id = a.Ach_id
-     WHERE ua.U_id = ?
-     ORDER BY ua.created_at DESC LIMIT 3`,
-    [CURRENT_USER_ID]
-  );
-
-  // Get user name
-  const user = query<{ fname: string }>(
-    'SELECT fname FROM user WHERE U_id = ?',
-    [CURRENT_USER_ID]
-  )[0];
+  const { stats, recentWorkouts, activeGoals, recentAchievements, userName } = data;
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Welcome back, {user?.fname || 'User'}!</h1>
+        <h1 className="text-3xl font-bold">Welcome back, {userName}!</h1>
         <p className="text-muted-foreground">Here&apos;s your fitness overview</p>
       </div>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <StatsCard title="Total Workouts" value={workoutCount} />
-        <StatsCard title="Active Goals" value={goalCount} />
-        <StatsCard title="Achievements" value={achievementCount} />
-        <StatsCard title="Calories Burned" value={totalCalories.toLocaleString()} />
+        <StatsCard title="Total Workouts" value={stats.workoutCount} />
+        <StatsCard title="Active Goals" value={stats.goalCount} />
+        <StatsCard title="Achievements" value={stats.achievementCount} />
+        <StatsCard title="Calories Burned" value={stats.totalCalories.toLocaleString()} />
       </div>
 
       {/* Recent Workouts */}

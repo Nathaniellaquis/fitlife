@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { TrainerWithUser } from '@/lib/types';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const trainers = query<TrainerWithUser>(
     `SELECT t.*, u.fname, u.lname, u.email
