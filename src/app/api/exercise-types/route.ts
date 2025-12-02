@@ -5,7 +5,7 @@ import { ExerciseType } from '@/lib/types';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const exerciseTypes = query<ExerciseType>(
+  const exerciseTypes = await query<ExerciseType>(
     'SELECT * FROM exercise_type ORDER BY name'
   );
 

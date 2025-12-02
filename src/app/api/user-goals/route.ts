@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
   sql += ' ORDER BY ug.created_at DESC';
 
-  const userGoals = query<UserGoalWithDetails>(sql, params);
+  const userGoals = await query<UserGoalWithDetails>(sql, params);
   return NextResponse.json(userGoals);
 }
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   const { U_id, G_id, target_value, current_value, status } = body;
 
   // Check if user already has this goal
-  const existing = queryOne(
+  const existing = await queryOne(
     'SELECT * FROM user_goal WHERE U_id = ? AND G_id = ?',
     [U_id, G_id]
   );
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'User already has this goal' }, { status: 400 });
   }
 
-  run(
+  await run(
     `INSERT INTO user_goal (U_id, G_id, target_value, current_value, status)
      VALUES (?, ?, ?, ?, ?)`,
     [U_id, G_id, target_value, current_value || 0, status || 'active']
@@ -53,17 +53,17 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json();
   const { U_id, G_id, target_value, current_value, status } = body;
 
-  run(
+  await run(
     `UPDATE user_goal SET
       target_value = COALESCE(?, target_value),
       current_value = COALESCE(?, current_value),
       status = COALESCE(?, status),
-      updated_at = CURRENT_TIMESTAMP
+      updated_at = NOW()
     WHERE U_id = ? AND G_id = ?`,
     [target_value, current_value, status, U_id, G_id]
   );
 
-  const userGoal = queryOne<UserGoalWithDetails>(
+  const userGoal = await queryOne<UserGoalWithDetails>(
     `SELECT ug.*, g.title, g.description
      FROM user_goal ug
      JOIN goal g ON ug.G_id = g.G_id
@@ -83,6 +83,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'U_id and G_id required' }, { status: 400 });
   }
 
-  run('DELETE FROM user_goal WHERE U_id = ? AND G_id = ?', [U_id, G_id]);
+  await run('DELETE FROM user_goal WHERE U_id = ? AND G_id = ?', [U_id, G_id]);
   return NextResponse.json({ success: true });
 }

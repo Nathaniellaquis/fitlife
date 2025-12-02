@@ -1,124 +1,111 @@
--- FitLife Seed Data
+-- FitLife Seed Data (PostgreSQL)
 
--- User (with dob and gender now)
-INSERT INTO user (email, password, fname, lname, phone, dob, gender, created_at, updated_at) VALUES
-('jack@fitlife.com',  'hash1', 'Jack',  'Wilczewski', '111-111-1111', '2003-04-01', 'Male',   '2024-11-01', '2025-01-01'),
-('sarah@fitlife.com', 'hash2', 'Sarah', 'Lee',        '222-222-2222', '1999-08-15', 'Female', '2024-11-05', '2025-01-02'),
-('nate@fitlife.com',  'hash3', 'Nate',  'Trainer',    '333-333-3333', '1990-03-20', 'Male',   '2024-11-10', '2025-01-03'),
-('chloe@fitlife.com', 'hash4', 'Chloe', 'Coach',      '444-444-4444', '1988-07-12', 'Female', '2024-11-15', '2025-01-04'),
-('mark@fitlife.com',  'hash5', 'Mark',  'Taylor',     '555-555-5555', '1995-03-10', 'Male',   '2024-11-20', '2025-01-05');
+-- Users (password is 'password123' - would be hashed in production)
+INSERT INTO "user" (email, password, fname, lname, phone, dob, gender) VALUES
+('jack@example.com', 'hashed_password_123', 'Jack', 'Smith', '555-0101', '1990-05-15', 'Male'),
+('emma@example.com', 'hashed_password_123', 'Emma', 'Johnson', '555-0102', '1988-08-22', 'Female'),
+('mike@example.com', 'hashed_password_123', 'Mike', 'Williams', '555-0103', '1985-03-10', 'Male'),
+('sarah@example.com', 'hashed_password_123', 'Sarah', 'Davis', '555-0104', '1992-11-30', 'Female'),
+('coach_tom@example.com', 'hashed_password_123', 'Tom', 'Anderson', '555-0105', '1980-01-20', 'Male')
+ON CONFLICT (email) DO NOTHING;
 
--- Athlete (A_id = U_id, Jack=1, Sarah=2, Mark=5 are athletes)
+-- Athletes (Jack, Emma, Mike, Sarah are athletes)
 INSERT INTO athlete (A_id, fitness_level) VALUES
 (1, 'Intermediate'),
-(2, 'Beginner'),
-(5, 'Advanced');
+(2, 'Advanced'),
+(3, 'Beginner'),
+(4, 'Intermediate')
+ON CONFLICT (A_id) DO NOTHING;
 
--- Trainer (T_id = U_id, Nate=3, Chloe=4 are trainers)
+-- Trainers (Coach Tom is a trainer)
 INSERT INTO trainer (T_id, specialty, location, bio) VALUES
-(3, 'Strength & Conditioning', 'Boston', 'Certified personal trainer with 10 years experience in strength training.'),
-(4, 'Endurance & Cardio', 'Boston', 'Marathon runner and cardio specialist helping clients achieve their endurance goals.');
+(5, 'Strength Training', 'Downtown Gym', 'Certified personal trainer with 10+ years experience in strength and conditioning.')
+ON CONFLICT (T_id) DO NOTHING;
 
--- Exercise Type
+-- Exercise Types
 INSERT INTO exercise_type (name, target_muscle_group) VALUES
-('Bench Press',    'Chest'),
-('Squat',          'Legs'),
-('Deadlift',       'Back'),
-('Running',        'Cardio'),
-('Cycling',        'Cardio'),
-('Push-up',        'Chest'),
-('Pull-up',        'Back'),
-('Plank',          'Core'),
-('Lunges',         'Legs'),
-('Shoulder Press', 'Shoulders');
+('Bench Press', 'Chest'),
+('Squats', 'Legs'),
+('Deadlift', 'Back'),
+('Pull-ups', 'Back'),
+('Shoulder Press', 'Shoulders'),
+('Bicep Curls', 'Arms'),
+('Tricep Dips', 'Arms'),
+('Lunges', 'Legs'),
+('Plank', 'Core'),
+('Running', 'Cardio'),
+('Cycling', 'Cardio'),
+('Rowing', 'Full Body'),
+('Lat Pulldown', 'Back'),
+('Leg Press', 'Legs'),
+('Calf Raises', 'Legs')
+ON CONFLICT DO NOTHING;
 
--- Workout Session
-INSERT INTO workout_session (U_id, session_date, notes, created_at) VALUES
-(1, '2025-01-20', 'Push-ups & Core',     '2025-01-20 09:00:00'),
-(1, '2025-01-22', 'Leg Day',             '2025-01-22 10:00:00'),
-(1, '2025-01-24', 'Upper Body Strength', '2025-01-24 08:30:00'),
-(2, '2024-10-01', '5k Run',              '2024-10-01 06:30:00'),
-(2, '2024-10-05', 'Legs & Core',         '2024-10-05 07:00:00'),
-(2, '2024-11-01', 'Upper Body',          '2024-11-01 08:00:00'),
-(2, '2024-11-15', 'Full Body Cardio',    '2024-11-15 07:30:00'),
-(5, '2025-01-10', 'Morning Run',         '2025-01-10 06:00:00'),
-(5, '2025-01-12', 'Chest & Triceps',     '2025-01-12 17:00:00');
+-- Goals
+INSERT INTO goal (title, description) VALUES
+('Lose 10 lbs', 'Achieve a weight loss of 10 pounds'),
+('Run 5K', 'Complete a 5 kilometer run'),
+('Bench Press 200 lbs', 'Bench press 200 pounds for one rep'),
+('100 Push-ups', 'Complete 100 push-ups in one session'),
+('Workout 30 Days', 'Complete workouts for 30 consecutive days'),
+('Squat Body Weight', 'Squat your body weight for 10 reps'),
+('10K Steps Daily', 'Walk 10,000 steps every day for a week'),
+('Flexibility Goal', 'Touch your toes without bending knees')
+ON CONFLICT DO NOTHING;
 
--- Workout Session Exercise (composite PK: WS_id, ET_id)
-INSERT INTO workout_session_exercise (WS_id, ET_id, exercise_order, sets, reps, duration_min, weight, calories_burned, created_at, completed_at) VALUES
--- Jack's Push-ups & Core session (WS_id=1)
-(1, 6, 1, 3, 20, NULL, NULL, 50, '2025-01-20 09:00:00', '2025-01-20 09:15:00'),
-(1, 8, 2, 3, NULL, 1, NULL, 30, '2025-01-20 09:00:00', '2025-01-20 09:25:00'),
--- Jack's Leg Day (WS_id=2)
-(2, 2, 1, 4, 10, NULL, 80.0, 120, '2025-01-22 10:00:00', '2025-01-22 10:30:00'),
-(2, 9, 2, 3, 12, NULL, 20.0, 80, '2025-01-22 10:00:00', '2025-01-22 10:50:00'),
--- Jack's Upper Body (WS_id=3)
-(3, 1, 1, 4, 8, NULL, 70.0, 100, '2025-01-24 08:30:00', '2025-01-24 09:00:00'),
-(3, 10, 2, 3, 10, NULL, 30.0, 60, '2025-01-24 08:30:00', '2025-01-24 09:20:00'),
--- Sarah's 5k Run (WS_id=4)
-(4, 4, 1, 1, NULL, 28, NULL, 320, '2024-10-01 06:30:00', '2024-10-01 06:58:00'),
--- Sarah's Legs & Core (WS_id=5)
-(5, 2, 1, 3, 12, NULL, 50.0, 90, '2024-10-05 07:00:00', '2024-10-05 07:20:00'),
-(5, 8, 2, 4, NULL, 1, NULL, 40, '2024-10-05 07:00:00', '2024-10-05 07:30:00'),
--- Sarah's Upper Body (WS_id=6)
-(6, 1, 1, 3, 10, NULL, 40.0, 80, '2024-11-01 08:00:00', '2024-11-01 08:20:00'),
-(6, 7, 2, 3, 8, NULL, NULL, 60, '2024-11-01 08:00:00', '2024-11-01 08:35:00'),
--- Sarah's Full Body Cardio (WS_id=7)
-(7, 5, 1, 1, NULL, 30, NULL, 250, '2024-11-15 07:30:00', '2024-11-15 08:00:00'),
--- Mark's Morning Run (WS_id=8)
-(8, 4, 1, 1, NULL, 35, NULL, 380, '2025-01-10 06:00:00', '2025-01-10 06:35:00'),
--- Mark's Chest & Triceps (WS_id=9)
-(9, 1, 1, 4, 10, NULL, 90.0, 130, '2025-01-12 17:00:00', '2025-01-12 17:30:00'),
-(9, 6, 2, 3, 25, NULL, NULL, 60, '2025-01-12 17:00:00', '2025-01-12 17:45:00');
-
--- Goal (catalog of goals)
-INSERT INTO goal (title, description, date_earned) VALUES
-('Bench Press 185 lbs', 'Reach a bench press of 185 pounds', NULL),
-('Run 5k under 25 min', 'Complete a 5k run in under 25 minutes', NULL),
-('Complete 50 workouts', 'Log 50 total workout sessions', NULL),
-('Squat 135 lbs', 'Reach a squat of 135 pounds', NULL),
-('Run 100 miles total', 'Accumulate 100 miles of running', NULL),
-('Bench Press 225 lbs', 'Reach a bench press of 225 pounds', NULL);
-
--- User Goal (composite PK: U_id, G_id)
-INSERT INTO user_goal (U_id, G_id, target_value, current_value, status, created_at, updated_at) VALUES
-(1, 1, 185, 155, 'active', '2025-01-01', '2025-01-20'),
-(1, 2, 25, 28, 'active', '2025-01-01', '2025-01-15'),
-(2, 3, 50, 32, 'active', '2024-09-01', '2024-11-15'),
-(2, 4, 135, 110, 'active', '2024-10-01', '2024-11-01'),
-(5, 5, 100, 45, 'active', '2025-01-01', '2025-01-12'),
-(5, 6, 225, 200, 'active', '2025-01-01', '2025-01-12');
-
--- Achievement
+-- Achievements
 INSERT INTO achievement (code, title, description) VALUES
-('FIRST_WORKOUT', 'First Steps', 'Complete your first workout'),
-('WORKOUT_10', 'Getting Started', 'Complete 10 workouts'),
-('WORKOUT_50', 'Dedicated', 'Complete 50 workouts'),
-('WORKOUT_100', 'Century Club', 'Complete 100 workouts'),
-('STREAK_7', 'Week Warrior', 'Work out 7 days in a row'),
-('STREAK_30', 'Monthly Master', 'Work out 30 days in a row'),
-('GOAL_COMPLETE', 'Goal Crusher', 'Complete a fitness goal'),
-('EARLY_BIRD', 'Early Bird', 'Complete a workout before 7 AM'),
-('HEAVY_LIFTER', 'Heavy Lifter', 'Lift over 100kg in a single exercise'),
-('CARDIO_KING', 'Cardio Royalty', 'Burn 500+ calories in a single session');
+('FIRST_WORKOUT', 'First Steps', 'Completed your first workout'),
+('WEEK_STREAK', 'Week Warrior', 'Worked out 7 days in a row'),
+('MONTH_STREAK', 'Monthly Master', 'Worked out 30 days in a row'),
+('EARLY_BIRD', 'Early Bird', 'Completed a workout before 6 AM'),
+('NIGHT_OWL', 'Night Owl', 'Completed a workout after 10 PM'),
+('GOAL_CRUSHER', 'Goal Crusher', 'Completed your first goal'),
+('FIVE_GOALS', 'High Achiever', 'Completed 5 goals'),
+('SOCIAL_BUTTERFLY', 'Social Butterfly', 'Connected with a trainer'),
+('CALORIE_BURNER', 'Calorie Burner', 'Burned 1000 calories in a single workout'),
+('CONSISTENT', 'Mr. Consistent', 'Logged workouts for 3 months')
+ON CONFLICT (code) DO NOTHING;
 
--- User Achievement (composite PK: U_id, Ach_id)
-INSERT INTO user_achievement (U_id, Ach_id, created_at, updated_at) VALUES
-(1, 1, '2025-01-20', '2025-01-20'),  -- Jack: First Steps
-(1, 8, '2025-01-20', '2025-01-20'),  -- Jack: Early Bird
-(2, 1, '2024-10-01', '2024-10-01'),  -- Sarah: First Steps
-(2, 2, '2024-11-01', '2024-11-01'),  -- Sarah: Getting Started (10 workouts)
-(2, 8, '2024-10-01', '2024-10-01'),  -- Sarah: Early Bird
-(5, 1, '2025-01-10', '2025-01-10'),  -- Mark: First Steps
-(5, 8, '2025-01-10', '2025-01-10'),  -- Mark: Early Bird
-(5, 9, '2025-01-12', '2025-01-12');  -- Mark: Heavy Lifter (90kg bench)
+-- Workout Sessions for Jack (user 1)
+INSERT INTO workout_session (U_id, session_date, notes) VALUES
+(1, '2024-01-15', 'Upper body focus - felt strong'),
+(1, '2024-01-17', 'Leg day - increased squat weight'),
+(1, '2024-01-19', 'Cardio and core'),
+(1, '2024-01-22', 'Full body workout'),
+(1, '2024-01-24', 'Back and biceps');
 
--- Trainer Connection (composite PK: A_id, T_id)
-INSERT INTO trainer_connection (A_id, T_id, notes, created_at) VALUES
-(1, 3, 'Jack training with Nate for strength building', '2024-12-01'),
-(2, 4, 'Sarah working with Chloe on cardio endurance', '2024-10-15'),
-(5, 3, 'Mark connected with Nate for powerlifting', '2025-01-05');
+-- Workout Session Exercises
+INSERT INTO workout_session_exercise (WS_id, ET_id, exercise_order, sets, reps, weight, calories_burned) VALUES
+(1, 1, 1, 4, 10, 135, 120),
+(1, 5, 2, 3, 12, 85, 80),
+(1, 6, 3, 3, 15, 30, 50),
+(2, 2, 1, 4, 8, 185, 150),
+(2, 8, 2, 3, 12, NULL, 80),
+(2, 14, 3, 3, 10, 200, 100),
+(3, 10, 1, 1, 1, NULL, 300),
+(3, 9, 2, 3, 1, NULL, 50),
+(4, 1, 1, 3, 10, 140, 110),
+(4, 2, 2, 3, 10, 175, 140),
+(4, 3, 3, 3, 8, 225, 160),
+(5, 3, 1, 4, 6, 245, 180),
+(5, 4, 2, 4, 8, NULL, 100),
+(5, 13, 3, 3, 12, 120, 90);
 
--- Password Reset
-INSERT INTO password_reset (U_id, token, expires_at, used_at, created_at) VALUES
-(1, 'abc123token', '2025-02-01 12:00:00', NULL, '2025-01-25 12:00:00');
+-- User Goals for Jack
+INSERT INTO user_goal (U_id, G_id, target_value, current_value, status) VALUES
+(1, 1, 10, 3, 'active'),
+(1, 3, 200, 140, 'active'),
+(1, 5, 30, 12, 'active')
+ON CONFLICT (U_id, G_id) DO NOTHING;
+
+-- User Achievements for Jack
+INSERT INTO user_achievement (U_id, Ach_id) VALUES
+(1, 1),
+(1, 8)
+ON CONFLICT (U_id, Ach_id) DO NOTHING;
+
+-- Trainer Connection (Jack connected with Coach Tom)
+INSERT INTO trainer_connection (A_id, T_id, notes) VALUES
+(1, 5, 'Started training January 2024')
+ON CONFLICT (A_id, T_id) DO NOTHING;

@@ -10,7 +10,7 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const athlete = queryOne<Athlete>(
+  const athlete = await queryOne<Athlete>(
     'SELECT * FROM athlete WHERE A_id = ?',
     [id]
   );
@@ -31,11 +31,11 @@ export async function PATCH(
 
   const { fitness_level } = body;
 
-  run(
+  await run(
     'UPDATE athlete SET fitness_level = COALESCE(?, fitness_level) WHERE A_id = ?',
     [fitness_level, id]
   );
 
-  const athlete = queryOne<Athlete>('SELECT * FROM athlete WHERE A_id = ?', [id]);
+  const athlete = await queryOne<Athlete>('SELECT * FROM athlete WHERE A_id = ?', [id]);
   return NextResponse.json(athlete);
 }

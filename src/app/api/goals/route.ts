@@ -5,6 +5,6 @@ import { Goal } from '@/lib/types';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const goals = query<Goal>('SELECT * FROM goal ORDER BY title');
+  const goals = await query<Goal>('SELECT * FROM goal ORDER BY title');
   return NextResponse.json(goals);
 }

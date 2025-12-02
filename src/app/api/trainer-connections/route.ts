@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
       (ut.fname || ' ' || ut.lname) as trainer_name,
       t.specialty as trainer_specialty
     FROM trainer_connection tc
-    JOIN user ua ON tc.A_id = ua.U_id
-    JOIN user ut ON tc.T_id = ut.U_id
+    JOIN "user" ua ON tc.A_id = ua.U_id
+    JOIN "user" ut ON tc.T_id = ut.U_id
     JOIN trainer t ON tc.T_id = t.T_id
   `;
   const params: unknown[] = [];
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     params.push(trainerId);
   }
 
-  const connections = query<TrainerConnectionWithDetails>(sql, params);
+  const connections = await query<TrainerConnectionWithDetails>(sql, params);
   return NextResponse.json(connections);
 }
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   const { A_id, T_id, notes } = body;
 
   // Check if connection already exists
-  const existing = queryOne(
+  const existing = await queryOne(
     'SELECT * FROM trainer_connection WHERE A_id = ? AND T_id = ?',
     [A_id, T_id]
   );
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Connection already exists' }, { status: 400 });
   }
 
-  run(
+  await run(
     'INSERT INTO trainer_connection (A_id, T_id, notes) VALUES (?, ?, ?)',
     [A_id, T_id, notes]
   );
@@ -64,7 +64,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'A_id and T_id required' }, { status: 400 });
   }
 
-  run(
+  await run(
     'DELETE FROM trainer_connection WHERE A_id = ? AND T_id = ?',
     [A_id, T_id]
   );

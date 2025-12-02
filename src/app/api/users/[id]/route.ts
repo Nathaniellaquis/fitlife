@@ -10,8 +10,8 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const user = queryOne<User>(
-    'SELECT * FROM user WHERE U_id = ?',
+  const user = await queryOne<User>(
+    'SELECT * FROM "user" WHERE U_id = ?',
     [id]
   );
 
@@ -19,12 +19,12 @@ export async function GET(
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  const athlete = queryOne<Athlete>(
+  const athlete = await queryOne<Athlete>(
     'SELECT * FROM athlete WHERE A_id = ?',
     [id]
   );
 
-  const trainer = queryOne<Trainer>(
+  const trainer = await queryOne<Trainer>(
     'SELECT * FROM trainer WHERE T_id = ?',
     [id]
   );
@@ -47,18 +47,18 @@ export async function PATCH(
 
   const { fname, lname, phone, dob, gender } = body;
 
-  run(
-    `UPDATE user SET
+  await run(
+    `UPDATE "user" SET
       fname = COALESCE(?, fname),
       lname = COALESCE(?, lname),
       phone = COALESCE(?, phone),
       dob = COALESCE(?, dob),
       gender = COALESCE(?, gender),
-      updated_at = CURRENT_TIMESTAMP
+      updated_at = NOW()
     WHERE U_id = ?`,
     [fname, lname, phone, dob, gender, id]
   );
 
-  const user = queryOne<User>('SELECT * FROM user WHERE U_id = ?', [id]);
+  const user = await queryOne<User>('SELECT * FROM "user" WHERE U_id = ?', [id]);
   return NextResponse.json(user);
 }

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
   sql += ' ORDER BY session_date DESC';
 
-  const workouts = query<WorkoutSession>(sql, params);
+  const workouts = await query<WorkoutSession>(sql, params);
   return NextResponse.json(workouts);
 }
 
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { U_id, session_date, notes } = body;
 
-  const result = run(
+  const result = await run(
     'INSERT INTO workout_session (U_id, session_date, notes) VALUES (?, ?, ?)',
     [U_id, session_date, notes]
   );

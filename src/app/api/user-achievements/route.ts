@@ -22,6 +22,6 @@ export async function GET(request: NextRequest) {
 
   sql += ' ORDER BY ua.created_at DESC';
 
-  const userAchievements = query<UserAchievementWithDetails>(sql, params);
+  const userAchievements = await query<UserAchievementWithDetails>(sql, params);
   return NextResponse.json(userAchievements);
 }

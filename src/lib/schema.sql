@@ -1,8 +1,8 @@
--- FitLife Database Schema (SQLite)
+-- FitLife Database Schema (PostgreSQL / Vercel Postgres)
 
 -- User table (base entity)
-CREATE TABLE IF NOT EXISTS user (
-    U_id INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE IF NOT EXISTS "user" (
+    U_id SERIAL PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     fname TEXT,
@@ -10,19 +10,19 @@ CREATE TABLE IF NOT EXISTS user (
     phone TEXT,
     dob TEXT,
     gender TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Athlete (subtype of user, A_id = U_id)
 CREATE TABLE IF NOT EXISTS athlete (
-    A_id INTEGER PRIMARY KEY REFERENCES user(U_id) ON DELETE CASCADE,
+    A_id INTEGER PRIMARY KEY REFERENCES "user"(U_id) ON DELETE CASCADE,
     fitness_level TEXT
 );
 
 -- Trainer (subtype of user, T_id = U_id)
 CREATE TABLE IF NOT EXISTS trainer (
-    T_id INTEGER PRIMARY KEY REFERENCES user(U_id) ON DELETE CASCADE,
+    T_id INTEGER PRIMARY KEY REFERENCES "user"(U_id) ON DELETE CASCADE,
     specialty TEXT,
     location TEXT,
     bio TEXT
@@ -33,32 +33,32 @@ CREATE TABLE IF NOT EXISTS trainer_connection (
     A_id INTEGER NOT NULL REFERENCES athlete(A_id) ON DELETE CASCADE,
     T_id INTEGER NOT NULL REFERENCES trainer(T_id) ON DELETE CASCADE,
     notes TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
     PRIMARY KEY (A_id, T_id)
 );
 
 -- Password reset
 CREATE TABLE IF NOT EXISTS password_reset (
-    PR_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    U_id INTEGER NOT NULL REFERENCES user(U_id) ON DELETE CASCADE,
+    PR_id SERIAL PRIMARY KEY,
+    U_id INTEGER NOT NULL REFERENCES "user"(U_id) ON DELETE CASCADE,
     token TEXT NOT NULL,
-    expires_at TEXT NOT NULL,
-    used_at TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    expires_at TIMESTAMP NOT NULL,
+    used_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Workout session
 CREATE TABLE IF NOT EXISTS workout_session (
-    WS_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    U_id INTEGER NOT NULL REFERENCES user(U_id) ON DELETE CASCADE,
+    WS_id SERIAL PRIMARY KEY,
+    U_id INTEGER NOT NULL REFERENCES "user"(U_id) ON DELETE CASCADE,
     session_date TEXT NOT NULL,
     notes TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Exercise type catalog
 CREATE TABLE IF NOT EXISTS exercise_type (
-    ET_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ET_id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     target_muscle_group TEXT
 );
@@ -73,14 +73,14 @@ CREATE TABLE IF NOT EXISTS workout_session_exercise (
     duration_min INTEGER,
     weight REAL,
     calories_burned INTEGER,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    completed_at TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    completed_at TIMESTAMP,
     PRIMARY KEY (WS_id, ET_id)
 );
 
 -- Goal catalog
 CREATE TABLE IF NOT EXISTS goal (
-    G_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    G_id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT,
     date_earned TEXT
@@ -88,19 +88,19 @@ CREATE TABLE IF NOT EXISTS goal (
 
 -- User goal (composite PK)
 CREATE TABLE IF NOT EXISTS user_goal (
-    U_id INTEGER NOT NULL REFERENCES user(U_id) ON DELETE CASCADE,
+    U_id INTEGER NOT NULL REFERENCES "user"(U_id) ON DELETE CASCADE,
     G_id INTEGER NOT NULL REFERENCES goal(G_id) ON DELETE CASCADE,
     target_value REAL,
     current_value REAL DEFAULT 0,
     status TEXT DEFAULT 'active',
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
     PRIMARY KEY (U_id, G_id)
 );
 
 -- Achievement catalog
 CREATE TABLE IF NOT EXISTS achievement (
-    Ach_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Ach_id SERIAL PRIMARY KEY,
     code TEXT UNIQUE NOT NULL,
     title TEXT NOT NULL,
     description TEXT
@@ -108,10 +108,10 @@ CREATE TABLE IF NOT EXISTS achievement (
 
 -- User achievement (composite PK)
 CREATE TABLE IF NOT EXISTS user_achievement (
-    U_id INTEGER NOT NULL REFERENCES user(U_id) ON DELETE CASCADE,
+    U_id INTEGER NOT NULL REFERENCES "user"(U_id) ON DELETE CASCADE,
     Ach_id INTEGER NOT NULL REFERENCES achievement(Ach_id) ON DELETE CASCADE,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
     PRIMARY KEY (U_id, Ach_id)
 );
 

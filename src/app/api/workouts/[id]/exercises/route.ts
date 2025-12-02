@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const exercises = query(
+  const exercises = await query(
     `SELECT wse.*, et.name, et.target_muscle_group
      FROM workout_session_exercise wse
      JOIN exercise_type et ON wse.ET_id = et.ET_id
@@ -29,7 +29,7 @@ export async function POST(
   const body = await request.json();
   const { ET_id, exercise_order, sets, reps, duration_min, weight, calories_burned } = body;
 
-  run(
+  await run(
     `INSERT INTO workout_session_exercise
      (WS_id, ET_id, exercise_order, sets, reps, duration_min, weight, calories_burned)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,

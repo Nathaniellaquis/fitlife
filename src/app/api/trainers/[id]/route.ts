@@ -10,10 +10,10 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const trainer = queryOne<TrainerWithUser>(
+  const trainer = await queryOne<TrainerWithUser>(
     `SELECT t.*, u.fname, u.lname, u.email
      FROM trainer t
-     JOIN user u ON t.T_id = u.U_id
+     JOIN "user" u ON t.T_id = u.U_id
      WHERE t.T_id = ?`,
     [id]
   );

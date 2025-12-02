@@ -5,10 +5,10 @@ import { TrainerWithUser } from '@/lib/types';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const trainers = query<TrainerWithUser>(
+  const trainers = await query<TrainerWithUser>(
     `SELECT t.*, u.fname, u.lname, u.email
      FROM trainer t
-     JOIN user u ON t.T_id = u.U_id`
+     JOIN "user" u ON t.T_id = u.U_id`
   );
 
   return NextResponse.json(trainers);

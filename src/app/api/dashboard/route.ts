@@ -14,37 +14,41 @@ export async function GET(request: Request) {
 
   try {
     // Get stats
-    const workoutCount = query<{ count: number }>(
+    const workoutCountResult = await query<{ count: number }>(
       'SELECT COUNT(*) as count FROM workout_session WHERE U_id = ?',
       [userId]
-    )[0]?.count || 0;
+    );
+    const workoutCount = workoutCountResult[0]?.count || 0;
 
-    const goalCount = query<{ count: number }>(
+    const goalCountResult = await query<{ count: number }>(
       'SELECT COUNT(*) as count FROM user_goal WHERE U_id = ? AND status = ?',
       [userId, 'active']
-    )[0]?.count || 0;
+    );
+    const goalCount = goalCountResult[0]?.count || 0;
 
-    const achievementCount = query<{ count: number }>(
+    const achievementCountResult = await query<{ count: number }>(
       'SELECT COUNT(*) as count FROM user_achievement WHERE U_id = ?',
       [userId]
-    )[0]?.count || 0;
+    );
+    const achievementCount = achievementCountResult[0]?.count || 0;
 
-    const totalCalories = query<{ total: number }>(
+    const totalCaloriesResult = await query<{ total: number }>(
       `SELECT COALESCE(SUM(wse.calories_burned), 0) as total
        FROM workout_session_exercise wse
        JOIN workout_session ws ON wse.WS_id = ws.WS_id
        WHERE ws.U_id = ?`,
       [userId]
-    )[0]?.total || 0;
+    );
+    const totalCalories = totalCaloriesResult[0]?.total || 0;
 
     // Get recent workouts
-    const recentWorkouts = query<WorkoutSession>(
+    const recentWorkouts = await query<WorkoutSession>(
       'SELECT * FROM workout_session WHERE U_id = ? ORDER BY session_date DESC LIMIT 3',
       [userId]
     );
 
     // Get active goals
-    const activeGoals = query<UserGoalWithDetails>(
+    const activeGoals = await query<UserGoalWithDetails>(
       `SELECT ug.*, g.title, g.description
        FROM user_goal ug
        JOIN goal g ON ug.G_id = g.G_id
@@ -54,7 +58,7 @@ export async function GET(request: Request) {
     );
 
     // Get recent achievements
-    const recentAchievements = query<UserAchievementWithDetails>(
+    const recentAchievements = await query<UserAchievementWithDetails>(
       `SELECT ua.*, a.code, a.title, a.description
        FROM user_achievement ua
        JOIN achievement a ON ua.Ach_id = a.Ach_id
@@ -64,10 +68,11 @@ export async function GET(request: Request) {
     );
 
     // Get user name
-    const user = query<{ fname: string }>(
-      'SELECT fname FROM user WHERE U_id = ?',
+    const userResult = await query<{ fname: string }>(
+      'SELECT fname FROM "user" WHERE U_id = ?',
       [userId]
-    )[0];
+    );
+    const user = userResult[0];
 
     return NextResponse.json({
       stats: {
@@ -98,4 +103,3 @@ export async function GET(request: Request) {
     });
   }
 }
-
